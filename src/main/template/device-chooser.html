@@ -1,0 +1,12 @@
+<div>
+    <label for="3746.985852">Choose your device:</label>
+    <select id="3746.985852" name="input-device" value="{{deviceId}}">
+        {{#devices}}
+        <option value="{{deviceId}}">{{label}}</option>
+        {{/devices}}
+        {{^devices}}
+        <option value="">No Devices</option>
+        {{/devices}}
+    </select>
+    <button on-click="go">Go!</button>
+</div>
