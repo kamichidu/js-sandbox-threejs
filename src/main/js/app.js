@@ -3,8 +3,6 @@ import * as Rx from 'rx';
 import * as picoModal from 'picomodal';
 import Ractive from 'ractive';
 
-window.THREE= THREE;
-
 class Renderer
 {
     constructor(opts= {})
@@ -17,21 +15,21 @@ class Renderer
 
     initialize()
     {
-        const camera= new THREE.PerspectiveCamera(40, this.el.clientWidth / this.el.clientHeight, 1, 10000);
-        camera.position.z= 500;
+        this.camera= new THREE.PerspectiveCamera(40, this.el.clientWidth / this.el.clientHeight, 1, 10000);
+        this.camera.position.z= 500;
 
-        const scene= new THREE.Scene();
+        this.scene= new THREE.Scene();
 
         const light= new THREE.DirectionalLight(0xffffff);
         light.position.set(0.5, 1, 1).normalize();
-        scene.add(light);
+        this.scene.add(light);
 
-        const renderer= new THREE.WebGLRenderer({
+        this.renderer= new THREE.WebGLRenderer({
             antialias: false,
         });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.el.clientWidth, this.el.clientHeight);
-        this.el.appendChild(renderer.domElement);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(this.el.clientWidth, this.el.clientHeight);
+        this.el.appendChild(this.renderer.domElement);
 
         const texture= new THREE.VideoTexture((() => {
             const el= document.createElement('video');
@@ -45,69 +43,21 @@ class Renderer
         texture.magFilter= THREE.LinearFilter;
         texture.format= THREE.RGBFormat;
 
-        {
-            const changeUvs= (geometry, unitx, unity, offsetx, offsety) => {
-                const faceVertexUvs= geometry.faceVertexUvs[0];
-                for(let i= 0; i < faceVertexUvs.length; ++i)
-                {
-                    const uvs= faceVertexUvs[i];
-                    for(let j= 0; j < uvs.length; ++j)
-                    {
-                        const uv= uvs[j];
-                        uv.x= (uv.x + offsetx) * unitx;
-                        uv.y= (uv.y + offsety) * unity;
-                    }
-                }
-            };
+        const xsize= 300;
+        const ysize= 300;
+        const geometry= new THREE.BoxGeometry(xsize, ysize, xsize);
+        const material= new THREE.MeshLambertMaterial({
+            color: 0xffffff,
+            map: texture,
+        });
+        const mesh= new THREE.Mesh(geometry, material);
+        this.scene.add(mesh);
 
-            const xgrid= 1;
-            const ygrid= 1;
-            const ux= 1 / xgrid;
-            const uy= 1 / ygrid;
-            const xsize= 480 / xgrid;
-            const ysize= 204 / ygrid;
-            const parameters= {
-                color: 0xffffff,
-                map: texture,
-            };
-            const materials= [];
-            const meshes= [];
+        this.renderer.autoClear= false;
+    }
 
-            for(let i= 0; i < xgrid; ++i)
-            {
-                for(let j= 0; j < ygrid; ++j)
-                {
-                    const ox= i;
-                    const oy= j;
-                    const geometry= new THREE.BoxGeometry(xsize, ysize, xsize);
-
-                    changeUvs(geometry, ux, uy, ox, oy);
-
-                    const material= new THREE.MeshLambertMaterial(parameters);
-                    material.hue= i / xgrid;
-                    material.saturation= 1 - j / ygrid;
-                    material.color.setHSL(material.hue, material.saturation, 0.5);
-                    materials.push(material);
-
-                    const mesh= new THREE.Mesh(geometry, material);
-                    mesh.position.x= (i - xgrid / 2) * xsize;
-                    mesh.position.y= (j - ygrid / 2) * ysize;
-                    mesh.position.z= 0;
-                    mesh.scale.x= mesh.scale.y= mesh.scale.z= 1;
-                    scene.add(mesh);
-
-                    mesh.dx= 0.001 * (0.5 - Math.random());
-                    mesh.dy= 0.001 * (0.5 - Math.random());
-                    meshes.push(mesh);
-                }
-            }
-
-            renderer.autoClear= false;
-        }
-
-        this.camera= camera;
-        this.scene= scene;
-        this.renderer= renderer;
+    rotate(angle)
+    {
     }
 
     render()
@@ -157,6 +107,7 @@ function main()
                 console.log('got devices:');
                 vtracks.forEach((vtrack) => console.log(`  - ${vtrack.label}`));
 
+                window.stream= stream;
                 const renderer= new Renderer({
                     el: document.querySelector('#container'),
                     stream: stream,
