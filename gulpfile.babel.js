@@ -3,12 +3,12 @@ import webpack from 'webpack-stream';
 
 gulp.task('build:static', ['build:vendor'], () => {
     gulp.src('./src/main/static/**/*')
-        .pipe(gulp.dest('./dist/'))
+        .pipe(gulp.dest('./docs/'))
     ;
 });
 gulp.task('build:vendor', () => {
     gulp.src('./node_modules/sanitize.css/sanitize.css')
-        .pipe(gulp.dest('./dist/vendor/css/'))
+        .pipe(gulp.dest('./docs/vendor/css/'))
     ;
 });
 gulp.task('build:js', () => {
@@ -16,7 +16,7 @@ gulp.task('build:js', () => {
 
     gulp.src('./src/main/js/**/*')
         .pipe(webpack(wpConfig))
-        .pipe(gulp.dest('./dist/assets/js/'))
+        .pipe(gulp.dest('./docs/assets/js/'))
     ;
 });
 gulp.task('build', ['build:static', 'build:js']);
